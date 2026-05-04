@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Busca de Facas — Relação de Portas Clichês</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --surface2: #1e2230;
+    --border: #2a2f3f;
+    --accent: #f0c040;
+    --accent2: #3a8ef5;
+    --text: #e8eaf0;
+    --muted: #6b7385;
+    --red: #f04a4a;
+    --green: #3ecf8e;
+    --tag-rf: #f0c04022;
+    --tag-rfborder: #f0c04066;
+    --tag-mod: #3a8ef522;
+    --tag-modborder: #3a8ef566;
+    --tag-160: #3ecf8e22;
+    --tag-160border: #3ecf8e66;
+    --tag-turo: #ff780022;
+    --tag-turoborder: #ff780066;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 20px 32px 16px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+  }
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  header span {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    padding-bottom: 4px;
+  }
+
+  /* Search area */
+  .search-wrap {
+    background: var(--surface);
+    padding: 24px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .search-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .search-box {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+  }
+  .search-box svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .search-box input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px 12px 42px;
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--text); color: var(--text); }
+  .filter-btn.active-pc  { border-color: #f0c040; color: #f0c040; background: var(--tag-rf); }
+  .filter-btn.active-mod { border-color: #3a8ef5; color: #3a8ef5; background: var(--tag-mod); }
+  .filter-btn.active-160 { border-color: #3ecf8e; color: #3ecf8e; background: var(--tag-160); }
+  .filter-btn.active-all { border-color: var(--text); color: var(--text); background: var(--surface2); }
+  .filter-btn.active-turo { border-color: #ff7800; color: #ff7800; background: var(--tag-turo); }
+
+  .count-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 8px 0;
+  }
+  .count-badge strong { color: var(--accent); }
+
+  /* Results */
+  .results {
+    padding: 24px 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.15s, transform 0.1s;
+    cursor: default;
+    animation: fadeUp 0.2s ease both;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .medida {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .medida mark {
+    background: #f0c04044;
+    color: var(--accent);
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+
+  .tag-tabela {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tag-PC  { background: var(--tag-rf);  border: 1px solid var(--tag-rfborder);  color: #f0c040; }
+  .tag-MOD { background: var(--tag-mod); border: 1px solid var(--tag-modborder); color: #3a8ef5; }
+  .tag-160 { background: var(--tag-160); border: 1px solid var(--tag-160border); color: #3ecf8e; }
+  .tag-TURO { background: var(--tag-turo); border: 1px solid var(--tag-turoborder); color: #ff7800; }
+
+  .card-info {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .info-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .info-value {
+    font-size: 0.9rem;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+  }
+  .info-value.highlight { color: var(--accent); font-weight: 500; }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .btn-edit, .btn-delete {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-edit {
+    background: transparent;
+    border-color: #3a8ef544;
+    color: #3a8ef5;
+  }
+  .btn-edit:hover { background: #3a8ef522; border-color: #3a8ef5; }
+  .btn-delete {
+    background: transparent;
+    border-color: #f04a4a44;
+    color: var(--red);
+  }
+  .btn-delete:hover { background: #f04a4a22; border-color: var(--red); }
+
+  /* Empty state */
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 64px 0;
+    color: var(--muted);
+  }
+  .empty svg { margin-bottom: 16px; opacity: 0.3; }
+  .empty p { font-size: 1rem; }
+  .empty small { font-size: 0.8rem; font-family: 'DM Mono', monospace; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚔ FACAS / CLICHÊS</h1>
+  <span>RELAÇÃO DE PORTAS CLICHÊS · BUSCA RÁPIDA</span>
+  <button id="btnAdicionar" onclick="abrirModal()" style="margin-left:auto;background:var(--accent);color:#111;border:none;border-radius:8px;padding:10px 20px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity 0.15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    NOVO FERRAMENTAL
+  </button>
+</header>
+
+<!-- MODAL ADICIONAR -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:#000a;z-index:100;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1.5px solid var(--accent);border-radius:14px;padding:32px;width:100%;max-width:460px;margin:16px;box-shadow:0 24px 60px #000a;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--accent);letter-spacing:1px;">+ NOVO FERRAMENTAL</h2>
+      <button onclick="fecharModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.4rem;line-height:1;">✕</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Tabela *</label>
+        <select id="f_tabela" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;">
+          <option value="PORTA-CLICHE">PORTA-CLICHE</option>
+          <option value="MODULAR">MODULAR</option>
+          <option value="REINA FLEX 160">REINA FLEX 160</option>
+          <option value="TURO">TURO</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Medida *</label>
+        <input id="f_medida" type="text" placeholder="ex: 100X150 ou Z 68" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Z</label>
+          <input id="f_z" type="text" placeholder="ex: 48" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Nº</label>
+          <input id="f_n" type="text" placeholder="ex: 161" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">OBS / QTDE</label>
+        <input id="f_obs" type="text" placeholder="ex: 1C, SERRILHA, QTDE: 3..." style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+    </div>
+
+    <div id="modal_erro" style="display:none;color:var(--red);font-size:0.8rem;font-family:'DM Mono',monospace;margin-top:12px;"></div>
+
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button onclick="fecharModal()" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarNovo()" style="flex:2;background:var(--accent);border:none;border-radius:8px;padding:12px;color:#111;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;cursor:pointer;">ADICIONAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="modalEditar" style="display:none;position:fixed;inset:0;background:#000a;z-index:100;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1.5px solid #3a8ef5;border-radius:14px;padding:32px;width:100%;max-width:460px;margin:16px;box-shadow:0 24px 60px #000a;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#3a8ef5;letter-spacing:1px;">✎ EDITAR FERRAMENTAL</h2>
+      <button onclick="fecharModalEditar()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.4rem;line-height:1;">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Tabela</label>
+        <select id="e_tabela" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;">
+          <option value="PORTA-CLICHE">PORTA-CLICHE</option>
+          <option value="MODULAR">MODULAR</option>
+          <option value="REINA FLEX 160">REINA FLEX 160</option>
+          <option value="TURO">TURO</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Medida *</label>
+        <input id="e_medida" type="text" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='#3a8ef5'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Z / Carreira</label>
+          <input id="e_z" type="text" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='#3a8ef5'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Nº</label>
+          <input id="e_n" type="text" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='#3a8ef5'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">OBS / QTDE</label>
+        <input id="e_obs" type="text" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor='#3a8ef5'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+    </div>
+    <div id="editar_erro" style="display:none;color:var(--red);font-size:0.8rem;font-family:'DM Mono',monospace;margin-top:12px;"></div>
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button onclick="fecharModalEditar()" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarEdicao()" style="flex:2;background:#3a8ef5;border:none;border-radius:8px;padding:12px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;cursor:pointer;">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR APAGAR -->
+<div id="modalApagar" style="display:none;position:fixed;inset:0;background:#000a;z-index:100;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1.5px solid var(--red);border-radius:14px;padding:32px;width:100%;max-width:400px;margin:16px;box-shadow:0 24px 60px #000a;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🗑</div>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--red);letter-spacing:1px;margin-bottom:8px;">APAGAR FERRAMENTAL?</h2>
+    <p id="apagar_desc" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:0.85rem;margin-bottom:24px;"></p>
+    <div style="display:flex;gap:10px;">
+      <button onclick="fecharModalApagar()" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">Cancelar</button>
+      <button onclick="confirmarApagar()" style="flex:1;background:var(--red);border:none;border-radius:8px;padding:12px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;cursor:pointer;">APAGAR</button>
+    </div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <div class="search-row">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar por medida, Z, obs... ex: 100X150 ou 48" autofocus>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active-all" data-filter="all">Todos</button>
+      <button class="filter-btn" data-filter="PORTA-CLICHE">PORTA-CLICHE</button>
+      <button class="filter-btn" data-filter="MODULAR">MODULAR</button>
+      <button class="filter-btn" data-filter="REINA FLEX 160">REINA FLEX 160</button>
+      <button class="filter-btn" data-filter="TURO">TURO</button>
+    </div>
+  </div>
+  <div class="count-badge" id="countBadge" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">Mostrando <strong id="countNum">0</strong> resultados<span id="sync-status" style="font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--muted);">⏳ Conectando...</span></div>
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+const BACKUP_DATA = [{"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 44", "z": "44", "obs": "QTDE: 4", "qtde": "4"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 45", "z": "45", "obs": "QTDE: 1", "qtde": "1"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 46", "z": "46", "obs": "QTDE: 4", "qtde": "4"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 48", "z": "48", "obs": "QTDE: 5", "qtde": "5"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 50", "z": "50", "obs": "QTDE: 3", "qtde": "3"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 51", "z": "51", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 53", "z": "53", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 55", "z": "55", "obs": "QTDE: 5", "qtde": "5"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 56", "z": "56", "obs": "QTDE: 2", "qtde": "2"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 58", "z": "58", "obs": "QTDE: 4", "qtde": "4"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 59", "z": "59", "obs": "QTDE: 1", "qtde": "1"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 64", "z": "64", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 67", "z": "67", "obs": "QTDE: 2", "qtde": "2"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 68", "z": "68", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 73", "z": "73", "obs": "QTDE: 4", "qtde": "4"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 75", "z": "75", "obs": "QTDE: 1", "qtde": "1"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 76", "z": "76", "obs": "QTDE: 4", "qtde": "4"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 77", "z": "77", "obs": "QTDE: 4", "qtde": "4"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 80", "z": "80", "obs": "QTDE: 4", "qtde": "4"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 84", "z": "84", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 89", "z": "89", "obs": "QTDE: 9", "qtde": "9"}, {"tabela": "MODULAR", "n": "", "medida": "Z 53", "z": "53", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "MODULAR", "n": "", "medida": "Z 55", "z": "55", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "MODULAR", "n": "", "medida": "Z 60", "z": "60", "obs": "QTDE: 5", "qtde": "5"}, {"tabela": "MODULAR", "n": "", "medida": "Z 62", "z": "62", "obs": "QTDE: 5", "qtde": "5"}, {"tabela": "MODULAR", "n": "", "medida": "Z 66", "z": "66", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "MODULAR", "n": "", "medida": "Z 68", "z": "68", "obs": "QTDE: 6", "qtde": "6"}, {"tabela": "MODULAR", "n": "", "medida": "Z 71", "z": "71", "obs": "QTDE: 5", "qtde": "5"}, {"tabela": "MODULAR", "n": "", "medida": "Z 76", "z": "76", "obs": "QTDE: 10", "qtde": "10"}, {"tabela": "MODULAR", "n": "", "medida": "Z 77", "z": "77", "obs": "QTDE: 2", "qtde": "2"}, {"tabela": "REINA FLEX 160", "n": "1", "medida": "50X120X2", "z": "77", "obs": "2C JUNTAS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "2", "medida": "117X65", "z": "44", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "3", "medida": "117X137", "z": "44", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "4", "medida": "85X150", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "5", "medida": "117X65", "z": "44", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "6", "medida": "100X150", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "7", "medida": "100X150", "z": "48", "obs": "SERRILHA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "8", "medida": "10X10", "z": "41", "obs": "5C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "9", "medida": "160X30", "z": "48", "obs": "1C/MEIO CORTE", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "10", "medida": "120X210", "z": "67", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "11", "medida": "100X150", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "12", "medida": "35X10", "z": "48", "obs": "3C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "13", "medida": "50X40", "z": "41", "obs": "2C JUNTAS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "14", "medida": "100X73", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "15", "medida": "105X36", "z": "49", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "16", "medida": "85X32", "z": "56", "obs": "2C JUNTAS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "17", "medida": "85X32", "z": "56", "obs": "SERILLHA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "18", "medida": "28X89", "z": "60", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "19", "medida": "28X89", "z": "60", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "20", "medida": "30X70", "z": "45", "obs": "3C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "21", "medida": "94X35", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "22", "medida": "40X60", "z": "57", "obs": "2C/FURO/TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "23", "medida": "110X32", "z": "51", "obs": "1C/FURO/TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "24", "medida": "100X160", "z": "52", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "25", "medida": "53X65", "z": "62", "obs": "2C/FURO/TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "26", "medida": "123X95", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "27", "medida": "120X45", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "28", "medida": "110X51", "z": "68", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "29", "medida": "110X37", "z": "60", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "30", "medida": "54X59", "z": "57", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "31", "medida": "105X144", "z": "46", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "32", "medida": "25XCONT", "z": "60", "obs": "4C/CORTE VINCO", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "33", "medida": "100X55", "z": "52", "obs": "SERRILHA MOVEL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "34", "medida": "100X100", "z": "64", "obs": "SERRILHA MOVEL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "35", "medida": "50X75", "z": "48", "obs": "2C/FURO/TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "36", "medida": "90X140", "z": "44", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "37", "medida": "100X60", "z": "60", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "38", "medida": "110X51", "z": "68", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "39", "medida": "50X22", "z": "68", "obs": "2C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "40", "medida": "100X70", "z": "70", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "41", "medida": "33X49", "z": "47", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "42", "medida": "90X58", "z": "77", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "43", "medida": "100X100", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "44", "medida": "37X170", "z": "55", "obs": "2C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "45", "medida": "105X50", "z": "66", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "46", "medida": "65X30", "z": "63", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "47", "medida": "123X95", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "48", "medida": "105X100", "z": "88", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "49", "medida": "103X68", "z": "66", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "50", "medida": "32X32", "z": "68", "obs": "3C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "51", "medida": "100X120", "z": "77", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "52", "medida": "52X85", "z": "556", "obs": "2C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "53", "medida": "50X30", "z": "41", "obs": "2C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "54", "medida": "105X130", "z": "42", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "55", "medida": "128X160", "z": "51", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "56", "medida": "120X250", "z": "80", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "57", "medida": "149X235", "z": "75", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "58", "medida": "80X130", "z": "84", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "59", "medida": "90X139", "z": "89", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "60", "medida": "100X80", "z": "53", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "61", "medida": "155X240", "z": "77", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "62", "medida": "85X200", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "63", "medida": "35X59", "z": "56", "obs": "1C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "64", "medida": "100X142", "z": "45", "obs": "1C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "65", "medida": "25X25", "z": "48", "obs": "3C SEP REDONDA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "66", "medida": "35X35", "z": "48", "obs": "1C/REDONDA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "67", "medida": "155X155", "z": "51", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "68", "medida": "45X28.05", "z": "53", "obs": "2C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "69", "medida": "123X95", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "70", "medida": "70X20", "z": "51", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "71", "medida": "50X50", "z": "50", "obs": "1C REDONDA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "72", "medida": "50X30", "z": "51", "obs": "2C JUNTAS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "73", "medida": "332X32", "z": "44", "obs": "3C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "74", "medida": "223X223", "z": "48", "obs": "04C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "75", "medida": "50X30", "z": "51", "obs": "2C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "76", "medida": "50X50", "z": "50", "obs": "2C JUNTAS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "77", "medida": "40X40", "z": "54", "obs": "2C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "78", "medida": "60X40", "z": "54", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "79", "medida": "100X75", "z": "49", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "80", "medida": "100X50", "z": "50", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "81", "medida": "34X232", "z": "50", "obs": "3C JUNTOS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "82", "medida": "100X39", "z": "53", "obs": "PICOTE", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "83", "medida": "118X65", "z": "86", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "84", "medida": "105X130", "z": "84", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "85", "medida": "39X146", "z": "46", "obs": "2C JUNTAS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "86", "medida": "102X210", "z": "67", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "87", "medida": "85X200", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "88", "medida": "30X20", "z": "61", "obs": "3C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "89", "medida": "90X58", "z": "77", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "90", "medida": "70X50", "z": "68", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "91", "medida": "149X149", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "92", "medida": "65X228", "z": "73", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "93", "medida": "50X80", "z": "58", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "94", "medida": "70X60", "z": "80", "obs": "1C OVAL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "95", "medida": "117X65", "z": "86", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "96", "medida": "15X276", "z": "889", "obs": "3C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "97", "medida": "76X60", "z": "80", "obs": "1C OVAL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "98", "medida": "110X279", "z": "89", "obs": "1C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "99", "medida": "105X174", "z": "111", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "100", "medida": "90X100", "z": "66", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "101", "medida": "125X150", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "102", "medida": "90X47", "z": "48", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "103", "medida": "104X120", "z": "77", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "104", "medida": "25X55", "z": "55", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "105", "medida": "35X288", "z": "92", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "106", "medida": "137X117", "z": "76", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "107", "medida": "95X130", "z": "84", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "108", "medida": "35X60", "z": "57", "obs": "3C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "109", "medida": "85X35", "z": "55", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "110", "medida": "85X32", "z": "55", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "111", "medida": "28X89", "z": "60", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "112", "medida": "28X89", "z": "60", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "113", "medida": "105X74", "z": "73", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "114", "medida": "53X56", "z": "53", "obs": "2C JUNTAS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "115", "medida": "40X37", "z": "51", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "116", "medida": "46X18", "z": "46", "obs": "2C JUNTA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "117", "medida": "27X117", "z": "75", "obs": "4C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "118", "medida": "85X32", "z": "56", "obs": "2C SEP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "119", "medida": "104X120", "z": "77", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "120", "medida": "120X213", "z": "68", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "121", "medida": "60X40", "z": "68", "obs": "1C OVAL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "122", "medida": "125X280", "z": "89", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "123", "medida": "53X65", "z": "62", "obs": "2C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "124", "medida": "105X35", "z": "49", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "125", "medida": "70X45", "z": "46", "obs": "1C OVAL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "126", "medida": "85X65", "z": "64", "obs": "1C OVAL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "127", "medida": "110X95", "z": "64", "obs": "1C OVAL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "128", "medida": "100X99", "z": "64", "obs": "1C QUADRADA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "129", "medida": "90X74", "z": "68", "obs": "1C OVAL", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "130", "medida": "102X156", "z": "50", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "131", "medida": "100X50", "z": "51", "obs": "1C BOPP", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "132", "medida": "28X89", "z": "60", "obs": "4C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "133", "medida": "28X89", "z": "60", "obs": "SERRILHA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "134", "medida": "50X23", "z": "49", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "135", "medida": "20X148", "z": "48", "obs": "4C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "136", "medida": "33X35", "z": "48", "obs": "3C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "137", "medida": "100X90", "z": "59", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "138", "medida": "27X210", "z": "67", "obs": "4C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "139", "medida": "105X130", "z": "42", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "140", "medida": "100X100", "z": "64", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "141", "medida": "80X25", "z": "44", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "141", "medida": "80X25", "z": "44", "obs": "SERRILHA", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "142", "medida": "100X40", "z": "53", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "143", "medida": "100X30", "z": "51", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "144", "medida": "80X50", "z": "50", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "145", "medida": "54X60", "z": "57", "obs": "2C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "146", "medida": "30X15X3", "z": "57", "obs": "3C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "147", "medida": "75X25", "z": "53", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "148", "medida": "88X70", "z": "46", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "149", "medida": "50X25X2", "z": "53", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "150", "medida": "85X32", "z": "55", "obs": "SERRILHA CLOVIS", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "151", "medida": "70X25", "z": "53", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "152", "medida": "45X40X2", "z": "53", "obs": "2C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "153", "medida": "85X100", "z": "65", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "154", "medida": "100X85", "z": "55", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "155", "medida": "60X25", "z": "52", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "156", "medida": "38X60", "z": "69", "obs": "1X", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "157", "medida": "40X124", "z": "80", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "158", "medida": "70X156", "z": "49", "obs": "1C TAG", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "159", "medida": "65X25", "z": "52", "obs": "1C", "qtde": ""}, {"tabela": "REINA FLEX 160", "n": "160", "medida": "100X75", "z": "49", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "1", "medida": "60X60", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "2", "medida": "100X50", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "3", "medida": "75X140", "z": "1C", "obs": "1C/TAG C.SERRILHA-3FACAS IGUAIS", "qtde": ""}, {"tabela": "TURO", "n": "4", "medida": "90X51", "z": "1C", "obs": "SERRILHAS ENTRE AS ETQ", "qtde": ""}, {"tabela": "TURO", "n": "5", "medida": "105X50", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "6", "medida": "100X60", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "7", "medida": "70X41", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "8", "medida": "105X36", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "9", "medida": "50X25", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "10", "medida": "45X25", "z": "4C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "11", "medida": "23X8", "z": "4C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "12", "medida": "15X15", "z": "4C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "13", "medida": "34X21", "z": "4C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "14", "medida": "35X20", "z": "8C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "15", "medida": "148X100", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "16", "medida": "100X100", "z": "1C", "obs": "PICOTE SEGURANÇA", "qtde": ""}, {"tabela": "TURO", "n": "17", "medida": "158X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "18", "medida": "105X100", "z": "1C", "obs": "C/ MEIO CORTE", "qtde": ""}, {"tabela": "TURO", "n": "19", "medida": "50X70", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "20", "medida": "155X55", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "21", "medida": "75X44", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "22", "medida": "85X55", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "23", "medida": "98X55", "z": "3C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "24", "medida": "59X54", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "25", "medida": "100X70", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "26", "medida": "102X59", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "27", "medida": "105X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "28", "medida": "90X30", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "29", "medida": "60X40", "z": "1C", "obs": "(2FACAS)", "qtde": ""}, {"tabela": "TURO", "n": "30", "medida": "80X25", "z": "1C", "obs": "MEIO CORTE ENTRE AS ETQ", "qtde": ""}, {"tabela": "TURO", "n": "31", "medida": "28X28", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "32", "medida": "90X60", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "33", "medida": "35X70", "z": "2C", "obs": "MEIO CORTE/SERRILHA/2 FACAS", "qtde": ""}, {"tabela": "TURO", "n": "34", "medida": "107X206", "z": "1C", "obs": "(2FACAS)", "qtde": ""}, {"tabela": "TURO", "n": "35", "medida": "105X74", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "36", "medida": "90X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "37", "medida": "50X34", "z": "3C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "38", "medida": "30X15", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "39", "medida": "40X40", "z": "1C", "obs": "+1 FACA COM 2C SEP", "qtde": ""}, {"tabela": "TURO", "n": "40", "medida": "95X59", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "41", "medida": "95X65", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "42", "medida": "123X70", "z": "1C", "obs": "TAG SIMPLES/OUTRA DE 3FUROS SEP.ENTRE AS ETQ.", "qtde": ""}, {"tabela": "TURO", "n": "43", "medida": "100X120", "z": "", "obs": "2 FACAS", "qtde": ""}, {"tabela": "TURO", "n": "44", "medida": "105X25", "z": "3C", "obs": "COM SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "45", "medida": "30X40", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "46", "medida": "90X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "47", "medida": "72X50", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "48", "medida": "60X110", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "49", "medida": "85X25", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "50", "medida": "80X100", "z": "1C", "obs": "COM PICOTE / COM SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "51", "medida": "50X50", "z": "2C", "obs": "JUNTAS/1C/2C SEP", "qtde": ""}, {"tabela": "TURO", "n": "52", "medida": "85X32", "z": "1C", "obs": "MEIO CORTE", "qtde": ""}, {"tabela": "TURO", "n": "53", "medida": "42X12", "z": "4C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "54", "medida": "75X25", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "55", "medida": "100X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "56", "medida": "100X40", "z": "1C", "obs": "2FACAS", "qtde": ""}, {"tabela": "TURO", "n": "57", "medida": "70X130", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "58", "medida": "100X25", "z": "1C", "obs": "3FACAS", "qtde": ""}, {"tabela": "TURO", "n": "59", "medida": "50X30", "z": "2C", "obs": "1 SEP /1 JUNTA", "qtde": ""}, {"tabela": "TURO", "n": "60", "medida": "40X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "61", "medida": "100X122", "z": "1C", "obs": "1 COM TAG", "qtde": ""}, {"tabela": "TURO", "n": "62", "medida": "50X22", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "63", "medida": "70X30", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "64", "medida": "142X75", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "65", "medida": "140X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "66", "medida": "100X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "67", "medida": "100X201", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "68", "medida": "89X28", "z": "1C", "obs": "FURO/SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "69", "medida": "42X40", "z": "2C", "obs": "SEP/COM PICOTE", "qtde": ""}, {"tabela": "TURO", "n": "70", "medida": "100X85", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "71", "medida": "37X169", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "72", "medida": "110X145", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "73", "medida": "33X21", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "74", "medida": "82X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "75", "medida": "27X25", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "76", "medida": "54X61", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "77", "medida": "2X1MMX170", "z": "", "obs": "SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "78", "medida": "150X100", "z": "1C", "obs": "COM PICOTE", "qtde": ""}, {"tabela": "TURO", "n": "79", "medida": "80X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "80", "medida": "59X54", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "81", "medida": "90X50", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "82", "medida": "89X35", "z": "1C", "obs": "FURO/SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "83", "medida": "75X50", "z": "4C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "84", "medida": "50X75", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "85", "medida": "125X95", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "86", "medida": "33X25", "z": "3C", "obs": "JUNTAS/1C/2C SEP", "qtde": ""}, {"tabela": "TURO", "n": "87", "medida": "123X95", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "88", "medida": "40X27", "z": "2C", "obs": "SEP/+4 CAR JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "89", "medida": "20X20", "z": "4C", "obs": "REDONDA SEP/ QUADRADA DE 3C SEP", "qtde": ""}, {"tabela": "TURO", "n": "90", "medida": "65X30", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "91", "medida": "35X33", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "92", "medida": "53X33", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "93", "medida": "120X104", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "94", "medida": "100X160", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "95", "medida": "60X38", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "96", "medida": "78X105", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "97", "medida": "28X22", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "98", "medida": "60X30", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "99", "medida": "50X50", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "100", "medida": "50X27", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "101", "medida": "60X33", "z": "3C", "obs": "3 CARREIRAS / TAG", "qtde": ""}, {"tabela": "TURO", "n": "102", "medida": "75X103", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "103", "medida": "40X50", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "104", "medida": "40X60", "z": "2C", "obs": "TAG(2 FACAS)", "qtde": ""}, {"tabela": "TURO", "n": "105", "medida": "50X23", "z": "2C", "obs": "JUNTA", "qtde": ""}, {"tabela": "TURO", "n": "106", "medida": "10X30", "z": "5C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "107", "medida": "41X21", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "108", "medida": "100X129", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "109", "medida": "120X54", "z": "1C", "obs": "1/PICOTE", "qtde": ""}, {"tabela": "TURO", "n": "110", "medida": "100X150", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "111", "medida": "105X35", "z": "1C", "obs": "PICOTE SEGURANÇA", "qtde": ""}, {"tabela": "TURO", "n": "112", "medida": "38X21", "z": "1C", "obs": "OVAL", "qtde": ""}, {"tabela": "TURO", "n": "113", "medida": "31X45", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "114", "medida": "30X10", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "115", "medida": "90X70", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "116", "medida": "50X77", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "117", "medida": "42X19", "z": "1C", "obs": "DESENHADA", "qtde": ""}, {"tabela": "TURO", "n": "118", "medida": "99X85", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "119", "medida": "120X73", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "120", "medida": "80X50", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "121", "medida": "51X74", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "122", "medida": "90X140", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "123", "medida": "105X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "124", "medida": "105X110", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "125", "medida": "30X45", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "126", "medida": "52X85", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "127", "medida": "38X38", "z": "1C", "obs": "OVAL", "qtde": ""}, {"tabela": "TURO", "n": "128", "medida": "20X148", "z": "4C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "129", "medida": "105X137", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "130", "medida": "59X40", "z": "2C", "obs": "JUNTA/FURO", "qtde": ""}, {"tabela": "TURO", "n": "131", "medida": "8X15", "z": "4C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "132", "medida": "100X73", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "133", "medida": "32X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "134", "medida": "40X21", "z": "1C", "obs": "DESENHAda", "qtde": ""}, {"tabela": "TURO", "n": "135", "medida": "30X30", "z": "1C", "obs": "QUADRADA", "qtde": ""}, {"tabela": "TURO", "n": "136", "medida": "40X40", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "137", "medida": "80X120", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "138", "medida": "48X24", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "139", "medida": "117X27", "z": "3C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "140", "medida": "95X123", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "141", "medida": "55X115", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "142", "medida": "30X35", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "143", "medida": "135", "z": "135", "obs": "SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "144", "medida": "170X30", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "145", "medida": "70X19", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "146", "medida": "31X41", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "147", "medida": "200X50", "z": "1C", "obs": "DESENHADA", "qtde": ""}, {"tabela": "TURO", "n": "148", "medida": "137X117", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "149", "medida": "64X116", "z": "1C", "obs": "DESENHADA", "qtde": ""}, {"tabela": "TURO", "n": "150", "medida": "105X130", "z": "1C", "obs": "2 FACAS", "qtde": ""}, {"tabela": "TURO", "n": "151", "medida": "80X45", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "152", "medida": "100X72", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "153", "medida": "40X60", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "154", "medida": "130X95", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "155", "medida": "140X124", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "156", "medida": "79X52", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "157", "medida": "100X163", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "158", "medida": "40X29", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "159", "medida": "37X27", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "160", "medida": "100X30", "z": "1C", "obs": "2 SEP", "qtde": ""}, {"tabela": "TURO", "n": "161", "medida": "40X240", "z": "", "obs": "c/serrilha", "qtde": ""}, {"tabela": "TURO", "n": "162", "medida": "60X45", "z": "3C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "163", "medida": "100X140", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "164", "medida": "100X138", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "165", "medida": "85X60", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "166", "medida": "130X100", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "167", "medida": "130X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "168", "medida": "40X25", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "169", "medida": "10X10", "z": "5C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "170", "medida": "55X15", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "171", "medida": "50X50", "z": "2C", "obs": "redonda", "qtde": ""}, {"tabela": "TURO", "n": "172", "medida": "91X11", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "173", "medida": "45X45", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "174", "medida": "75X25", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "175", "medida": "40X28", "z": "1X", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "176", "medida": "38X58", "z": "3C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "177", "medida": "200X106", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "178", "medida": "57X86", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "179", "medida": "90X58", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "180", "medida": "120X115", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "181", "medida": "75X23", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "182", "medida": "54X84", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "183", "medida": "87X163", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "184", "medida": "70X100", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "185", "medida": "65X25", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "186", "medida": "70X20", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "187", "medida": "80X130", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "188", "medida": "102X210", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "189", "medida": "38X40", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "190", "medida": "85X100", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "191", "medida": "30X20", "z": "3C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "192", "medida": "30X30X3", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "193", "medida": "90X55", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "194", "medida": "55X25", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "195", "medida": "72X157", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "196", "medida": "80X65", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "197", "medida": "65X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "198", "medida": "22X33", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "199", "medida": "101X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "200", "medida": "10X30", "z": "5C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "201", "medida": "50X70", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "202", "medida": "100X90", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "203", "medida": "36X89", "z": "1C", "obs": "c/ gap", "qtde": ""}, {"tabela": "TURO", "n": "204", "medida": "19X51", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "205", "medida": "90X90", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "206", "medida": "70X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "207", "medida": "105X55", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "208", "medida": "80X25X2", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "209", "medida": "80X105", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "210", "medida": "30X66", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "211", "medida": "103X71", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "212", "medida": "25X15", "z": "2C", "obs": "SEP OVAL", "qtde": ""}, {"tabela": "TURO", "n": "213", "medida": "38X60", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "214", "medida": "160X50", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "215", "medida": "60X70", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "216", "medida": "75X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "217", "medida": "105X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "218", "medida": "90X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "219", "medida": "75X35", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "220", "medida": "152X102", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "221", "medida": "50X77", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "222", "medida": "60X35", "z": "3C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "223", "medida": "50X45", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "224", "medida": "25X70", "z": "4C", "obs": "JUNTAS/1 CAR/70X25 1CAR", "qtde": ""}, {"tabela": "TURO", "n": "225", "medida": "100X200", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "226", "medida": "120X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "227", "medida": "63X20", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "228", "medida": "100X40", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "229", "medida": "75X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "230", "medida": "115X76", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "231", "medida": "40X30", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "232", "medida": "89X46", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "233", "medida": "70X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "234", "medida": "105X70", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "235", "medida": "45X30", "z": "2C", "obs": "2SEP", "qtde": ""}, {"tabela": "TURO", "n": "236", "medida": "50X50", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "237", "medida": "30X40", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "238", "medida": "8X8", "z": "4C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "239", "medida": "95X130", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "240", "medida": "120X60", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "241", "medida": "105X80", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "242", "medida": "60X48", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "243", "medida": "76X45", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "244", "medida": "50X75", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "245", "medida": "98X63", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "246", "medida": "145X45", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "247", "medida": "90X47", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "248", "medida": "60X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "249", "medida": "114X116", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "250", "medida": "60X50", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "251", "medida": "75X24", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "252", "medida": "50X40", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "253", "medida": "34X25", "z": "3C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "254", "medida": "50X60", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "255", "medida": "46X15", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "256", "medida": "100X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "257", "medida": "103X73", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "258", "medida": "120X119", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "259", "medida": "25X10", "z": "3C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "260", "medida": "28X33", "z": "3C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "261", "medida": "50X85", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "262", "medida": "105X60", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "263", "medida": "105X150", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "264", "medida": "80X25", "z": "1C", "obs": "SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "265", "medida": "200X65", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "266", "medida": "105X74", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "267", "medida": "50X144", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "268", "medida": "144X39", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "269", "medida": "108X63", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "270", "medida": "100X39", "z": "1C", "obs": "PICOTE SEGURANÇA", "qtde": ""}, {"tabela": "TURO", "n": "271", "medida": "114X46", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "272", "medida": "130X90", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "273", "medida": "25X54", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "274", "medida": "130X120", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "275", "medida": "100X145", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "277", "medida": "32X26", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "278", "medida": "80X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "279", "medida": "30X160", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "280", "medida": "60X70", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "281", "medida": "110X70", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "282", "medida": "100MM", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "283", "medida": "10X30", "z": "", "obs": "GAP COM FURO", "qtde": ""}, {"tabela": "TURO", "n": "284", "medida": "60X75", "z": "1C", "obs": "OVAL", "qtde": ""}, {"tabela": "TURO", "n": "285", "medida": "25X54", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "286", "medida": "155X155", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "287", "medida": "159X80", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "288", "medida": "80X25", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "289", "medida": "85X85", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "290", "medida": "80MM", "z": "", "obs": "SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "291", "medida": "105X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "292", "medida": "85X65", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "293", "medida": "85X75", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "294", "medida": "75X60", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "295", "medida": "50X15", "z": "4C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "296", "medida": "105X135", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "297", "medida": "60X35", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "298", "medida": "280X123", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "299", "medida": "34X15", "z": "3C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "300", "medida": "104X60", "z": "1C", "obs": "1C", "qtde": ""}, {"tabela": "TURO", "n": "301", "medida": "120X50", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "302", "medida": "85X30", "z": "3C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "303", "medida": "194X94", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "304", "medida": "142X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "305", "medida": "130X65", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "306", "medida": "64X149", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "307", "medida": "170X170", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "308", "medida": "153X68", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "309", "medida": "211X70", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "310", "medida": "53X113", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "311", "medida": "110X150", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "312", "medida": "75X140", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "313", "medida": "195X60", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "314", "medida": "135X60", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "315", "medida": "75X60", "z": "1C", "obs": "SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "316", "medida": "104X143", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "317", "medida": "100XC150", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "318", "medida": "60X55", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "319", "medida": "35X59", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "320", "medida": "45X29", "z": "6C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "321", "medida": "50X47", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "322", "medida": "40X70", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "323", "medida": "85X85", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "324", "medida": "65X137", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "325", "medida": "50X165", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "326", "medida": "65X80", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "327", "medida": "50X90", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "328", "medida": "50X70", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "329", "medida": "10X10", "z": "1C", "obs": "FURO", "qtde": ""}, {"tabela": "TURO", "n": "330", "medida": "213X120", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "331", "medida": "57X57", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "332", "medida": "10X50", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "333", "medida": "65X65", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "334", "medida": "40X50", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "335", "medida": "10X60", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "336", "medida": "72X72", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "337", "medida": "100X39", "z": "1C", "obs": "PICOTE SEGURANÇA", "qtde": ""}, {"tabela": "TURO", "n": "338", "medida": "35X35", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "339", "medida": "213X60", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "340", "medida": "150X170", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "341", "medida": "43X21", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "342", "medida": "110X210", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "343", "medida": "62X54", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "344", "medida": "91X174", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "345", "medida": "21X25", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "346", "medida": "10X147", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "347", "medida": "147X100", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "348", "medida": "100X147", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "349", "medida": "105X130", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "350", "medida": "65X49", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "351", "medida": "60X149", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "352", "medida": "145X72", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "353", "medida": "124X66", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "354", "medida": "206X58", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "355", "medida": "86X28", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "356", "medida": "180X70", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "357", "medida": "50X122", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "358", "medida": "120X105", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "359", "medida": "100X50", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "360", "medida": "130X120", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "361", "medida": "200X70", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "362", "medida": "85X150", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "363", "medida": "196X106", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "364", "medida": "124X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "365", "medida": "105X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "366", "medida": "160X110", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "367", "medida": "10X125", "z": "1C", "obs": "REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "368", "medida": "100X100", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "369", "medida": "200X40", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "370", "medida": "100X39", "z": "3C", "obs": "PICOTE SEGURANÇA", "qtde": ""}, {"tabela": "TURO", "n": "371", "medida": "90X68", "z": "1C", "obs": "OVAL", "qtde": ""}, {"tabela": "TURO", "n": "372", "medida": "15X15", "z": "2C", "obs": "VINCO", "qtde": ""}, {"tabela": "TURO", "n": "373", "medida": "45X45", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "374", "medida": "62X20", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "375", "medida": "88X18", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "376", "medida": "85X21", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "377", "medida": "40X60", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "378", "medida": "72X132", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "379", "medida": "60X130", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "380", "medida": "100X105", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "381", "medida": "58X15", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "382", "medida": "40X45", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "383", "medida": "40X25", "z": "1C", "obs": "OVAL", "qtde": ""}, {"tabela": "TURO", "n": "384", "medida": "169X40", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "385", "medida": "35X25", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "386", "medida": "150X150", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "387", "medida": "88X70", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "388", "medida": "88X50", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "389", "medida": "40X60", "z": "2C", "obs": "SEP ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "390", "medida": "30X30", "z": "2C", "obs": "SEP", "qtde": ""}, {"tabela": "TURO", "n": "391", "medida": "100X125", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "392", "medida": "60X46", "z": "3C", "obs": "SEP REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "393", "medida": "54X60", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "394", "medida": "54X60", "z": "2C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "395", "medida": "40X25", "z": "4C", "obs": "SEP REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "396", "medida": "3X30", "z": "3C", "obs": "SEP REDONDA", "qtde": ""}, {"tabela": "TURO", "n": "397", "medida": "105X45", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "398", "medida": "70X40", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "399", "medida": "140X180", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "400", "medida": "75X80", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "401", "medida": "115X50", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "402", "medida": "50X34", "z": "3C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "403", "medida": "50X35", "z": "3C", "obs": "SEP C/FURO", "qtde": ""}, {"tabela": "TURO", "n": "404", "medida": "100X100", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "405", "medida": "50X33", "z": "3C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "406", "medida": "162", "z": "", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "407", "medida": "153", "z": "", "obs": "SERILHA ENTRE ETQ", "qtde": ""}, {"tabela": "TURO", "n": "408", "medida": "100X150", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "409", "medida": "100X37", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "410", "medida": "111X96", "z": "1C", "obs": "SONHO CACAU", "qtde": ""}, {"tabela": "TURO", "n": "411", "medida": "100X100", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "412", "medida": "75X91", "z": "1C", "obs": "OVAL SONHO CACAU", "qtde": ""}, {"tabela": "TURO", "n": "413", "medida": "86X66", "z": "1C", "obs": "OVAL SONHO CACAU", "qtde": ""}, {"tabela": "TURO", "n": "414", "medida": "71X48", "z": "1C", "obs": "OVAL SONHO CACAU", "qtde": ""}, {"tabela": "TURO", "n": "415", "medida": "100X39", "z": "1C", "obs": "TAG", "qtde": ""}, {"tabela": "TURO", "n": "416", "medida": "150X74", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "417", "medida": "150X70", "z": "2C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "418", "medida": "180X135", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "419", "medida": "50X80", "z": "1C", "obs": "FACA DESENHADA", "qtde": ""}, {"tabela": "TURO", "n": "420", "medida": "70X156", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "421", "medida": "36X64", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "422", "medida": "50X38", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "423", "medida": "50X23", "z": "3C", "obs": "JUNTAS", "qtde": ""}, {"tabela": "TURO", "n": "424", "medida": "145X130", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "425", "medida": "161.5X101", "z": "1C", "obs": "ESPECIAL", "qtde": ""}, {"tabela": "TURO", "n": "426", "medida": "130X200", "z": "1C", "obs": "", "qtde": ""}, {"tabela": "TURO", "n": "427", "medida": "84X32", "z": "1C", "obs": "SERRILHA", "qtde": ""}, {"tabela": "TURO", "n": "428", "medida": "38X30", "z": "1C", "obs": "", "qtde": ""}];
+
+
+
+const SHEET_URLS = {
+  "PORTA-CLICHE":   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=422838424&single=true&output=csv",
+  "MODULAR":        "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=17776603&single=true&output=csv",
+  "REINA FLEX 160": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=468168721&single=true&output=csv",
+  "TURO":           "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=333810582&single=true&output=csv"
+};
+
+let DATA = [];
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const rows = [];
+  for (const line of lines) {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  }
+  return rows;
+}
+
+function parseSheet(tabela, rows) {
+  const items = [];
+  // Find header row with Z/QTDE or N°/MEDIDA
+  let dataStart = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i].map(c => c.toUpperCase());
+    if (r.includes('Z') || r.includes('N°') || r.includes('MEDIDA') || r.includes('CARREIRA')) {
+      dataStart = i + 1;
+      break;
+    }
+  }
+  for (let i = dataStart; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[0] || r[0].trim() === '' || r[0].toUpperCase() === 'TOTAL') continue;
+    // Skip yellow empty rows
+    if (!r[0] && !r[1]) continue;
+    if (tabela === 'PORTA-CLICHE' || tabela === 'MODULAR') {
+      // cols: Z, QTDE
+      const z = (r[0] || '').trim();
+      const qtde = (r[1] || '').trim();
+      if (!z || isNaN(z)) continue;
+      items.push({ tabela, n: '', medida: 'Z ' + z, z, obs: 'QTDE: ' + qtde, qtde });
+    } else {
+      // cols: N°, MEDIDA, Z/CARREIRA, OBS
+      const n = (r[0] || '').trim();
+      const medida = (r[1] || '').trim();
+      const z = (r[2] || '').trim();
+      const obs = (r[3] || '').trim();
+      if (!medida) continue;
+      items.push({ tabela, n, medida, z, obs, qtde: '' });
+    }
+  }
+  return items;
+}
+
+async function loadAllSheets() {
+  const results = document.getElementById('results');
+  const status = document.getElementById('sync-status');
+
+  // If opened as local file, skip fetch and use embedded data immediately
+  if (location.protocol === 'file:') {
+    DATA = BACKUP_DATA;
+    status.textContent = '📦 Dados locais (abra pelo Google Drive para sincronizar)';
+    status.style.color = '#f0c040';
+    render(document.getElementById('searchInput').value);
+    return;
+  }
+
+  results.innerHTML = '<div class="empty"><p>⏳ Carregando dados...</p></div>';
+  document.getElementById('countNum').textContent = '...';
+
+  // Try to load from Google Sheets
+  try {
+    const promises = Object.entries(SHEET_URLS).map(async ([tabela, url]) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      const resp = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!resp.ok) throw new Error('Network error');
+      const text = await resp.text();
+      const rows = parseCSV(text);
+      return parseSheet(tabela, rows);
+    });
+
+    const allResults = await Promise.all(promises);
+    DATA = allResults.flat();
+    console.log('✅ Dados carregados do Google Sheets:', DATA.length, 'itens');
+    document.getElementById('sync-status').textContent = '🟢 Sincronizado com Google Sheets';
+    document.getElementById('sync-status').style.color = 'var(--green)';
+  } catch (e) {
+    // Fallback to embedded data
+    console.warn('⚠️ Google Sheets indisponível, usando dados locais:', e.message);
+    DATA = BACKUP_DATA;
+    document.getElementById('sync-status').textContent = '🟡 Modo offline — dados locais';
+    document.getElementById('sync-status').style.color = '#f0c040';
+  }
+
+  render(document.getElementById('searchInput').value);
+}
+
+let activeFilter = 'all';
+
+function tagClass(tabela) {
+  if (tabela === 'PORTA-CLICHE') return 'PC';
+  if (tabela === 'MODULAR') return 'MOD';
+  if (tabela === 'TURO') return 'TURO';
+  return '160';
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+function render(query) {
+  const q = query.trim().toUpperCase();
+  const results = document.getElementById('results');
+  const filtered = DATA.filter(d => {
+    const matchFilter = activeFilter === 'all' || d.tabela === activeFilter;
+    if (!matchFilter) return false;
+    if (!q) return true;
+    return (
+      d.medida.toUpperCase().includes(q) ||
+      d.z.toString().includes(q) ||
+      d.obs.toUpperCase().includes(q) ||
+      d.n.toString().includes(q)
+    );
+  });
+
+  document.getElementById('countNum').textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    results.innerHTML = `<div class="empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p>Nenhum resultado encontrado</p>
+      <small>Tente buscar por medida (ex: 100X150), Z (ex: 48) ou OBS (ex: SERRILHA)</small>
+    </div>`;
+    return;
+  }
+
+  results.innerHTML = filtered.map((d, i) => {
+    const tc = tagClass(d.tabela);
+    const mh = highlight(d.medida, q);
+    const zh = highlight(d.z, q);
+    const oh = highlight(d.obs, q);
+    const delay = Math.min(i * 20, 300);
+
+    let infoHtml = '';
+    if (d.n) infoHtml += `<div class="info-item"><span class="info-label">Nº</span><span class="info-value">${d.n}</span></div>`;
+    infoHtml += `<div class="info-item"><span class="info-label">Z</span><span class="info-value highlight">${zh}</span></div>`;
+    if (d.obs && !d.obs.startsWith('QTDE:')) {
+      infoHtml += `<div class="info-item"><span class="info-label">OBS</span><span class="info-value">${oh}</span></div>`;
+    }
+    if (d.qtde) {
+      infoHtml += `<div class="info-item"><span class="info-label">QTDE</span><span class="info-value highlight">${d.qtde}</span></div>`;
+    }
+
+    const realIdx = DATA.indexOf(d);
+    return `<div class="card" style="animation-delay:${delay}ms">
+      <div class="card-top">
+        <div class="medida">${mh}</div>
+        <span class="tag-tabela tag-${tc}">${d.tabela}</span>
+      </div>
+      <div class="card-info">${infoHtml}</div>
+      <div class="card-actions">
+        <button class="btn-edit" onclick="abrirEditar(${realIdx})" title="Editar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        <button class="btn-delete" onclick="abrirApagar(${realIdx})" title="Apagar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Apagar
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Search input
+document.getElementById('searchInput').addEventListener('input', e => render(e.target.value));
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.className = 'filter-btn';
+    });
+    activeFilter = btn.dataset.filter;
+    if (activeFilter === 'all') btn.classList.add('active-all');
+    else if (activeFilter === 'PORTA-CLICHE') btn.classList.add('active-pc');
+    else if (activeFilter === 'MODULAR') btn.classList.add('active-mod');
+    else if (activeFilter === 'TURO') btn.classList.add('active-turo');
+    else btn.classList.add('active-160');
+    render(document.getElementById('searchInput').value);
+  });
+});
+
+// Load from Google Sheets
+loadAllSheets();
+
+// Modal
+function abrirModal() {
+  document.getElementById('modal').style.display = 'flex';
+  document.getElementById('f_medida').focus();
+}
+function fecharModal() {
+  document.getElementById('modal').style.display = 'none';
+  document.getElementById('modal_erro').style.display = 'none';
+  ['f_medida','f_z','f_n','f_obs'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+function salvarNovo() {
+  const tabela = document.getElementById('f_tabela').value.trim();
+  const medida = document.getElementById('f_medida').value.trim().toUpperCase();
+  const z      = document.getElementById('f_z').value.trim();
+  const n      = document.getElementById('f_n').value.trim();
+  const obs    = document.getElementById('f_obs').value.trim().toUpperCase();
+  const erro   = document.getElementById('modal_erro');
+  if (!medida) { erro.textContent = '⚠ O campo Medida é obrigatório.'; erro.style.display = 'block'; return; }
+  erro.style.display = 'none';
+  DATA.push({ tabela, n, medida, z, obs, qtde: '' });
+  fecharModal();
+  render(document.getElementById('searchInput').value);
+  const btn = document.getElementById('btnAdicionar');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✓ ADICIONADO';
+  btn.style.background = 'var(--green)';
+  setTimeout(() => { btn.innerHTML = orig; btn.style.background = 'var(--accent)'; }, 2000);
+}
+let editIdx = null;
+let deleteIdx = null;
+
+function abrirEditar(idx) {
+  editIdx = idx;
+  const d = DATA[idx];
+  document.getElementById('e_tabela').value = d.tabela;
+  document.getElementById('e_medida').value = d.medida;
+  document.getElementById('e_z').value = d.z;
+  document.getElementById('e_n').value = d.n;
+  document.getElementById('e_obs').value = d.obs;
+  document.getElementById('editar_erro').style.display = 'none';
+  document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModalEditar() {
+  document.getElementById('modalEditar').style.display = 'none';
+  editIdx = null;
+}
+function salvarEdicao() {
+  const medida = document.getElementById('e_medida').value.trim().toUpperCase();
+  if (!medida) {
+    const e = document.getElementById('editar_erro');
+    e.textContent = '⚠ O campo Medida é obrigatório.';
+    e.style.display = 'block';
+    return;
+  }
+  DATA[editIdx] = {
+    tabela: document.getElementById('e_tabela').value,
+    medida: medida,
+    z: document.getElementById('e_z').value.trim(),
+    n: document.getElementById('e_n').value.trim(),
+    obs: document.getElementById('e_obs').value.trim().toUpperCase(),
+    qtde: DATA[editIdx].qtde
+  };
+  fecharModalEditar();
+  render(document.getElementById('searchInput').value);
+}
+
+function abrirApagar(idx) {
+  deleteIdx = idx;
+  const d = DATA[idx];
+  document.getElementById('apagar_desc').textContent = `Nº ${d.n} · ${d.medida} · ${d.tabela}`;
+  document.getElementById('modalApagar').style.display = 'flex';
+}
+function fecharModalApagar() {
+  document.getElementById('modalApagar').style.display = 'none';
+  deleteIdx = null;
+}
+function confirmarApagar() {
+  DATA.splice(deleteIdx, 1);
+  fecharModalApagar();
+  render(document.getElementById('searchInput').value);
+}
+
+document.getElementById('modalEditar').addEventListener('click', function(e) { if (e.target === this) fecharModalEditar(); });
+document.getElementById('modalApagar').addEventListener('click', function(e) { if (e.target === this) fecharModalApagar(); });
+
+document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) fecharModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { fecharModal(); fecharModalEditar(); fecharModalApagar(); } });
+
+</script>
+</body>
+</html>
