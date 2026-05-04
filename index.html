@@ -406,24 +406,11 @@ const BACKUP_DATA = [{"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 44", "z": 
 
 
 
-const SHEET_URLS = {
-  "PORTA-CLICHE":   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=422838424&single=true&output=csv",
-  "MODULAR":        "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=17776603&single=true&output=csv",
-  "REINA FLEX 160": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=468168721&single=true&output=csv",
-  "TURO":           "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-rUQwjy2P6WMLJvQ5-3Eq4ZZwZAl9V9LNLPo7nG9ar-ulJ9vxa8FFDOjdPd2p3w/pub?gid=333810582&single=true&output=csv"
-};
+// Google Apps Script handles data loading
 
 let DATA = [];
 
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const rows = [];
-  for (const line of lines) {
-    const cols = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQ = !inQ; }
+
       else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
       else cur += c;
     }
@@ -433,16 +420,7 @@ function parseCSV(text) {
   return rows;
 }
 
-function parseSheet(tabela, rows) {
-  const items = [];
-  // Find header row with Z/QTDE or N°/MEDIDA
-  let dataStart = 0;
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i].map(c => c.toUpperCase());
-    if (r.includes('Z') || r.includes('N°') || r.includes('MEDIDA') || r.includes('CARREIRA')) {
-      dataStart = i + 1;
-      break;
-    }
+
   }
   for (let i = dataStart; i < rows.length; i++) {
     const r = rows[i];
@@ -469,47 +447,41 @@ function parseSheet(tabela, rows) {
 }
 
 async function loadAllSheets() {
-  const results = document.getElementById('results');
   const status = document.getElementById('sync-status');
 
-  // If opened as local file, skip fetch and use embedded data immediately
+  // Se aberto como arquivo local usa dados embutidos
   if (location.protocol === 'file:') {
     DATA = BACKUP_DATA;
-    status.textContent = '📦 Dados locais (abra pelo Google Drive para sincronizar)';
+    status.textContent = '📦 Modo offline — dados locais';
     status.style.color = '#f0c040';
     render(document.getElementById('searchInput').value);
     return;
   }
 
-  results.innerHTML = '<div class="empty"><p>⏳ Carregando dados...</p></div>';
+  status.textContent = '🔄 Sincronizando com Google Sheets...';
+  status.style.color = 'var(--muted)';
+  document.getElementById('results').innerHTML = '<div class="empty"><p>⏳ Carregando dados...</p></div>';
   document.getElementById('countNum').textContent = '...';
 
-  // Try to load from Google Sheets
   try {
-    const promises = Object.entries(SHEET_URLS).map(async ([tabela, url]) => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 5000);
-      const resp = await fetch(url, { signal: controller.signal });
-      clearTimeout(timer);
-      if (!resp.ok) throw new Error('Network error');
-      const text = await resp.text();
-      const rows = parseCSV(text);
-      return parseSheet(tabela, rows);
-    });
-
-    const allResults = await Promise.all(promises);
-    DATA = allResults.flat();
-    console.log('✅ Dados carregados do Google Sheets:', DATA.length, 'itens');
-    document.getElementById('sync-status').textContent = '🟢 Sincronizado com Google Sheets';
-    document.getElementById('sync-status').style.color = 'var(--green)';
-  } catch (e) {
-    // Fallback to embedded data
-    console.warn('⚠️ Google Sheets indisponível, usando dados locais:', e.message);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const resp = await fetch('https://script.google.com/macros/s/AKfycbwZAnNeFLcsA8yJpWiDBEPhlAOJYtWQPCPAik-C2L3h5BUjuBDEHDBv5iZC1T-29KEC/exec', { signal: controller.signal });
+    clearTimeout(timer);
+    const online = await resp.json();
+    if (online && online.length > 0) {
+      DATA = online;
+      const now = new Date().toLocaleTimeString('pt-BR');
+      status.textContent = '✅ Sincronizado às ' + now + ' (' + DATA.length + ' itens)';
+      status.style.color = 'var(--green)';
+    } else {
+      throw new Error('vazio');
+    }
+  } catch(e) {
     DATA = BACKUP_DATA;
-    document.getElementById('sync-status').textContent = '🟡 Modo offline — dados locais';
-    document.getElementById('sync-status').style.color = '#f0c040';
+    status.textContent = '⚠️ Sem conexão — usando dados locais';
+    status.style.color = '#f0c040';
   }
-
   render(document.getElementById('searchInput').value);
 }
 
