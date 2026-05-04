@@ -410,42 +410,6 @@ const BACKUP_DATA = [{"tabela": "PORTA-CLICHE", "n": "", "medida": "Z 44", "z": 
 
 let DATA = [];
 
-
-      else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-      else cur += c;
-    }
-    cols.push(cur.trim());
-    rows.push(cols);
-  }
-  return rows;
-}
-
-
-  }
-  for (let i = dataStart; i < rows.length; i++) {
-    const r = rows[i];
-    if (!r[0] || r[0].trim() === '' || r[0].toUpperCase() === 'TOTAL') continue;
-    // Skip yellow empty rows
-    if (!r[0] && !r[1]) continue;
-    if (tabela === 'PORTA-CLICHE' || tabela === 'MODULAR') {
-      // cols: Z, QTDE
-      const z = (r[0] || '').trim();
-      const qtde = (r[1] || '').trim();
-      if (!z || isNaN(z)) continue;
-      items.push({ tabela, n: '', medida: 'Z ' + z, z, obs: 'QTDE: ' + qtde, qtde });
-    } else {
-      // cols: N°, MEDIDA, Z/CARREIRA, OBS
-      const n = (r[0] || '').trim();
-      const medida = (r[1] || '').trim();
-      const z = (r[2] || '').trim();
-      const obs = (r[3] || '').trim();
-      if (!medida) continue;
-      items.push({ tabela, n, medida, z, obs, qtde: '' });
-    }
-  }
-  return items;
-}
-
 async function loadAllSheets() {
   const status = document.getElementById('sync-status');
 
@@ -466,9 +430,10 @@ async function loadAllSheets() {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
-    const resp = await fetch('https://script.google.com/macros/s/AKfycbwZAnNeFLcsA8yJpWiDBEPhlAOJYtWQPCPAik-C2L3h5BUjuBDEHDBv5iZC1T-29KEC/exec', { signal: controller.signal });
+    const resp = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://script.google.com/macros/s/AKfycbwZAnNeFLcsA8yJpWiDBEPhlAOJYtWQPCPAik-C2L3h5BUjuBDEHDBv5iZC1T-29KEC/exec'), { signal: controller.signal });
     clearTimeout(timer);
-    const online = await resp.json();
+    const wrapper = await resp.json();
+    const online = JSON.parse(wrapper.contents);
     if (online && online.length > 0) {
       DATA = online;
       const now = new Date().toLocaleTimeString('pt-BR');
