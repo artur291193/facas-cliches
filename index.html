@@ -428,12 +428,15 @@ async function loadAllSheets() {
   document.getElementById('countNum').textContent = '...';
 
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    const resp = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://script.google.com/macros/s/AKfycbwZAnNeFLcsA8yJpWiDBEPhlAOJYtWQPCPAik-C2L3h5BUjuBDEHDBv5iZC1T-29KEC/exec'), { signal: controller.signal });
-    clearTimeout(timer);
-    const wrapper = await resp.json();
-    const online = JSON.parse(wrapper.contents);
+    const online = await new Promise((resolve, reject) => {
+      const cbName = 'cb_' + Date.now();
+      const script = document.createElement('script');
+      const timer = setTimeout(() => { delete window[cbName]; script.remove(); reject(new Error('timeout')); }, 8000);
+      window[cbName] = (data) => { clearTimeout(timer); script.remove(); delete window[cbName]; resolve(data); };
+      script.src = 'https://script.google.com/macros/s/AKfycbwZAnNeFLcsA8yJpWiDBEPhlAOJYtWQPCPAik-C2L3h5BUjuBDEHDBv5iZC1T-29KEC/exec?callback=' + cbName;
+      script.onerror = () => { clearTimeout(timer); reject(new Error('script error')); };
+      document.head.appendChild(script);
+    });
     if (online && online.length > 0) {
       DATA = online;
       const now = new Date().toLocaleTimeString('pt-BR');
